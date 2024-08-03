@@ -21,8 +21,12 @@ export class BoardService {
   }
 
   // get all
-  async findAll(): Promise<board[]> {
-    return this.prisma.board.findMany();
+  async findAll(category:number): Promise<board[]> {
+    return this.prisma.board.findMany({
+      where: {
+        category: category,
+      },
+    });
   }
 
   findOne(id: number): Promise<board|null> {
