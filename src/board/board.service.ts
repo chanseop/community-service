@@ -50,4 +50,15 @@ export class BoardService {
       where: { id },
     });
   }
+
+  async search(word:string): Promise<board[]> {
+    return this.prisma.board.findMany({
+      where: {
+        OR: [
+          { title: { contains: word } },
+          { contents: { contains: word } },
+        ],
+      },
+    });
+  }
 }
