@@ -13,6 +13,11 @@ export class AuthService {
 
     async signIn(email: string, pass: string): Promise<{ access_token: string }> {
         const user = await this.usersService.findOne(email);
+        if (user.softDelete){
+            throw new UnauthorizedException(
+                '탈퇴한 회원입니다.'
+            );
+        }
         const checkPw = await bcrypt.compare(pass, user.password);
         if (!checkPw) {
             throw new UnauthorizedException(
@@ -35,11 +40,14 @@ export class AuthService {
     }
 
     // 회원가입
-    async signUp(email: string, pass: string, username: string) {
+    async signUp(email: string, pass: string, username: string ,role?:number) {
         await this.idCheck(email);
         const hashedPassword = await bcrypt.hash(pass, 10);
-        return this.usersService.create(email, hashedPassword, username);
+        return this.usersService.create(email, hashedPassword, username, role);
     }
         
+    async softDelete(email: string) {
+        return this.usersService.softDelete(email);
+    }
 
 }

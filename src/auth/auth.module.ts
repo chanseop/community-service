@@ -5,9 +5,12 @@ import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from "./constants";
 import { PrismaService } from "src/prisma.service";
+// import { JwtStrategy } from "./jwt.strategy";
+// import { PassportModule } from "@nestjs/passport";
 
 @Module({
   imports: [
+    // PassportModule.register({ defaultStrategy: 'jwt' }),
     UsersModule,
     JwtModule.register({
       global: true,

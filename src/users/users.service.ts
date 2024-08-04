@@ -13,12 +13,22 @@ export class UsersService {
         });
     }
 
-    async create(email: string, password: string, username: string): Promise<users>{
+    async create(email: string, password: string, username: string,role?:number): Promise<users>{
         return this.prismaService.users.create({
             data:{
                 email,
                 password,
                 username,
+                role:role?role:1100
+            },
+        });
+    }
+
+    async softDelete(email: string): Promise<users>{
+        return this.prismaService.users.update({
+            where: { email },
+            data: {
+                softDelete: true,
             },
         });
     }

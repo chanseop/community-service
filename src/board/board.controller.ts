@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Query, UseInterceptors, Res, HttpStatus, HttpCode, HttpException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Query, UseInterceptors, Res, HttpStatus, HttpCode, HttpException, Req } from '@nestjs/common';
 import { BoardService } from './board.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
 import { ResponseTransformInterceptor } from "src/interceptors/response-transform-interceptors";
 import { ResponseMsg } from "src/decorators/response-decorate";
-import { stringify } from "querystring";
+import { User } from "src/decorators/user.decorator";
 
 @Controller('board')
 @UseInterceptors(ResponseTransformInterceptor)
@@ -15,7 +15,14 @@ export class BoardController {
   @HttpCode(HttpStatus.CREATED)
   @ResponseMsg('게시글 생성 성공')
   @Post('create')
-  create(@Body() createBoardDto: CreateBoardDto) {
+  create(@Body() createBoardDto: CreateBoardDto, @User() user) {
+    if (user.role === 1100 && createBoardDto.category !==2){
+      throw new HttpException(
+        '관리자만 글작성 가능합니다.',
+        HttpStatus.FORBIDDEN
+      );
+    }
+    createBoardDto.author = user.email;
     return this.boardService.create(createBoardDto);
   }
 
@@ -31,8 +38,20 @@ export class BoardController {
   @HttpCode(HttpStatus.OK)
   @ResponseMsg('게시글 조회 성공')
   @Get(':category/:id')
-  findOne(@Param('id') id: string) {
-    return this.boardService.findOne(+id);
+  async findOne(@Param('id') id: string ,@User() user) {
+    const data = await this.boardService.findOne(+id);
+    // 수정 가능한지 확인
+    const canEditStatusCheckData = data.author === user.email;
+    // 데이터 병합
+    const result ={canEdit: canEditStatusCheckData,canDelete:canEditStatusCheckData, data: data};
+    
+    //관리자 권한 확인
+    if (user.role === 1111){
+      const result ={canEdit: canEditStatusCheckData,canDelete:true, data: data};
+      return result;
+    }
+
+    return result;
   }
 
   // 게시글을 수정하는 API
@@ -47,15 +66,24 @@ export class BoardController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ResponseMsg('게시글 삭제 성공')
   @Delete(':category/:id')
-  remove(@Param('id') id: string) {
-    const checkContent = this.boardService.findOne(+id);
-    
-    if (checkContent.then((res)=>res === null)) {
+  async remove(@Param('id') id: string, @User() user) {
+    const checkContent =await this.boardService.findOne(+id);
+    if (checkContent === null) {
       throw new HttpException(
         '존재하지 않는 게시글입니다.',
         HttpStatus.BAD_REQUEST
       );
     }
+    if (checkContent.author !== user.email ) {
+      throw new HttpException(
+        '작성자만 삭제 가능합니다.',
+        HttpStatus.FORBIDDEN
+      );
+    }else if (user.role === 1111){
+      return this.boardService.remove(+id);
+    }
+    
+
     return this.boardService.remove(+id);
   }
 
