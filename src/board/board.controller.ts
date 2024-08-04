@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Query, UseInterceptors, Res, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Query, UseInterceptors, Res, HttpStatus, HttpCode, HttpException } from '@nestjs/common';
 import { BoardService } from './board.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
 import { ResponseTransformInterceptor } from "src/interceptors/response-transform-interceptors";
 import { ResponseMsg } from "src/decorators/response-decorate";
+import { stringify } from "querystring";
 
 @Controller('board')
 @UseInterceptors(ResponseTransformInterceptor)
@@ -47,6 +48,14 @@ export class BoardController {
   @ResponseMsg('게시글 삭제 성공')
   @Delete(':category/:id')
   remove(@Param('id') id: string) {
+    const checkContent = this.boardService.findOne(+id);
+    
+    if (checkContent.then((res)=>res === null)) {
+      throw new HttpException(
+        '존재하지 않는 게시글입니다.',
+        HttpStatus.BAD_REQUEST
+      );
+    }
     return this.boardService.remove(+id);
   }
 

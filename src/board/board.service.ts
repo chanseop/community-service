@@ -22,21 +22,21 @@ export class BoardService {
 
   // get all
   async findAll(category:number): Promise<board[]> {
-    return this.prisma.board.findMany({
+    return await this.prisma.board.findMany({
       where: {
         category: category,
       },
     });
   }
 
-  findOne(id: number): Promise<board|null> {
-    return this.prisma.board.findUnique({
+  async findOne(id: number): Promise<board|null> {
+    return await this.prisma.board.findUnique({
       where: { id },
     });
   }
 
   async update(id: number, updateBoardDto: UpdateBoardDto) : Promise<board> {
-    return this.prisma.board.update({
+    return await this.prisma.board.update({
       where: { id },
       data: {
         title: updateBoardDto.title, 
@@ -46,13 +46,13 @@ export class BoardService {
   }
 
   async remove(id: number): Promise<board> {
-    return this.prisma.board.delete({
+    return await this.prisma.board.delete({
       where: { id },
     });
   }
 
   async search(word:string): Promise<board[]> {
-    return this.prisma.board.findMany({
+    return await this.prisma.board.findMany({
       where: {
         OR: [
           { title: { contains: word } },
