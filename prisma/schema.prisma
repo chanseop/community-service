@@ -23,3 +23,13 @@ model board {
   updateAt DateTime @updatedAt
 }
 
+model users {
+  id    Int     @id @default(autoincrement())
+  email String @unique
+  username String
+  password String
+  role Int @default(1100)
+  createAt DateTime @default(now())
+  softDelete Boolean @default(false)
+}
+
