@@ -1,6 +1,8 @@
 import { Injectable,UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt'
+import * as bcrypt from 'bcrypt';
+import { env } from "process";
 
 @Injectable()
 export class AuthService {
@@ -11,7 +13,8 @@ export class AuthService {
 
     async signIn(email: string, pass: string) : Promise<{access_token:string}>{
         const user = await this.usersService.findOne(email);
-        if (user?.password !== pass) {
+        const checkPw = await bcrypt.compare(pass, user.password);
+        if (!checkPw) {
             throw new UnauthorizedException(
                 '아이디 또는 비밀번호가 일치하지 않습니다.'
             );
@@ -32,9 +35,11 @@ export class AuthService {
         }
     }
 
+    // 회원가입
     async signUp(email: string, pass: string, username: string) {
         await this.idCheck(email);
-        return this.usersService.create(email, pass, username);
+        const hashedPassword = await bcrypt.hash(pass, 10);
+        return this.usersService.create(email, hashedPassword, username);
     }
         
 
