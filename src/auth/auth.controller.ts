@@ -31,7 +31,7 @@ export class AuthController {
 
     // signup
     @HttpCode(HttpStatus.CREATED)
-    @ ResponseMsg('회원가입 성공')
+    @ResponseMsg('회원가입 성공')
     @Public()
     @Post('signup')
     async signUp(@Body() signUpDto:AuthDto){
@@ -47,7 +47,7 @@ export class AuthController {
     }
 
     // delete
-    @HttpCode(HttpStatus.NO_CONTENT)
+    @HttpCode(HttpStatus.OK)
     @ResponseMsg('탈퇴 성공')
     @Delete('member/delete')
     async softDelete(@User() user){
@@ -58,7 +58,7 @@ export class AuthController {
                 HttpStatus.BAD_REQUEST
             );
         }
-        const deleteResult = this.authService.softDelete(user.email);
-        return deleteResult;
+        this.authService.softDelete(user.email);
+        return null;
     }
 }
