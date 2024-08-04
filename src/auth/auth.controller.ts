@@ -13,7 +13,7 @@ export class AuthController {
 
     // login
     @HttpCode(HttpStatus.OK)
-    @ ResponseMsg('로그인 성공')
+    @ResponseMsg('로그인 성공')
     @Public()
     @Post('login')
     async signIn(@Body() signInDto:AuthDto){
@@ -29,7 +29,7 @@ export class AuthController {
     }
 
     @HttpCode(HttpStatus.CREATED)
-    @ ResponseMsg('회원가입 성공')
+    @ResponseMsg('회원가입 성공')
     @Public()
     @Post('signup')
     async signUp(@Body() signUpDto:AuthDto){
