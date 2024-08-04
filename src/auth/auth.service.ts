@@ -11,7 +11,7 @@ export class AuthService {
         private jwtService: JwtService
     ) {}
 
-    async signIn(email: string, pass: string) : Promise<{access_token:string}>{
+    async signIn(email: string, pass: string): Promise<{ access_token: string }> {
         const user = await this.usersService.findOne(email);
         const checkPw = await bcrypt.compare(pass, user.password);
         if (!checkPw) {
@@ -20,19 +20,18 @@ export class AuthService {
             );
         }
         const payload = { email: user.email, sub: user.id, role: user.role, username: user.username };
-        return {
-            access_token:await this.jwtService.signAsync(payload)
-        };
+        const access_token = await this.jwtService.signAsync(payload);
+        return { access_token };
     }
 
     // id중복체크
     async idCheck(email: string){
         const userCheck = await this.usersService.findOne(email);
         if (userCheck) {
-            throw new UnauthorizedException(
-                '이미 존재하는 아이디입니다.'
-            );
+            return false;
         }
+        return true;
+
     }
 
     // 회원가입
