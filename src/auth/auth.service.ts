@@ -9,15 +9,33 @@ export class AuthService {
         private jwtService: JwtService
     ) {}
 
-    async signIn(id: string, pass: string) : Promise<{access_token:string}>{
-        const user = await this.usersService.findOne(id);
+    async signIn(email: string, pass: string) : Promise<{access_token:string}>{
+        const user = await this.usersService.findOne(email);
         if (user?.password !== pass) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException(
+                '아이디 또는 비밀번호가 일치하지 않습니다.'
+            );
         }
-        const payload = { id: user.id, sub: user.userId };
-        
+        const payload = { email: user.email, sub: user.id, role: user.role, username: user.username };
         return {
             access_token:await this.jwtService.signAsync(payload)
         };
     }
+
+    // id중복체크
+    async idCheck(email: string){
+        const userCheck = await this.usersService.findOne(email);
+        if (userCheck) {
+            throw new UnauthorizedException(
+                '이미 존재하는 아이디입니다.'
+            );
+        }
+    }
+
+    async signUp(email: string, pass: string, username: string) {
+        await this.idCheck(email);
+        return this.usersService.create(email, pass, username);
+    }
+        
+
 }
