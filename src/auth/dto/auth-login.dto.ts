@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEmail, IsNotEmpty, IsString, MaxLength, Min, MinLength } from "class-validator";
 
-export class AuthDto {
+export class LoginDto {
     @ApiProperty({
         required: true,
         type: String,
@@ -28,18 +28,4 @@ export class AuthDto {
     @IsNotEmpty()
     password: string;
 
-    @ApiProperty({
-        required: true,
-        type: String,
-        description: '사용자 이름',
-        example: '임찬섭',
-        default: '임찬섭'
-    })
-    @IsString({message:'사용자 이름은 문자열로 입력해주세요.'})
-    @IsNotEmpty()
-    @MinLength(2,{message:'사용자 이름은 2자 이상 입력해주세요.'})
-    @MaxLength(20,{message:'사용자 이름은 20자 이하로 입력해주세요.'})
-    username:string;
-
-    role?:number;
 }

@@ -6,7 +6,10 @@ import { UsersService } from "src/users/users.service";
 import { ResponseMsg } from "src/decorators/response-decorate";
 import { ResponseTransformInterceptor } from "src/interceptors/response-transform-interceptors";
 import { User } from "src/decorators/user.decorator";
+import { ApiBearerAuth, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { LoginDto } from "./dto/auth-login.dto";
 
+@ApiTags('Auth')
 @Controller()
 @UseInterceptors(ResponseTransformInterceptor)
 export class AuthController {
@@ -15,9 +18,11 @@ export class AuthController {
     // login
     @HttpCode(HttpStatus.OK)
     @ResponseMsg('로그인 성공')
+    @ApiResponse({ status: 200, description: '로그인 성공' })
+    @ApiResponse({ status: 400, description: '존재하지 않는 아이디입니다.' })
     @Public()
     @Post('login')
-    async signIn(@Body() signInDto:AuthDto){
+    async signIn(@Body() signInDto:LoginDto){
         const user = await this.userService.findOne(signInDto.email);
         if (!user) {
             throw new HttpException(
@@ -32,6 +37,8 @@ export class AuthController {
     // signup
     @HttpCode(HttpStatus.CREATED)
     @ResponseMsg('회원가입 성공')
+    @ApiResponse({ status: 201, description: '회원가입 성공' })
+    @ApiResponse({ status: 400, description: '이미 존재하는 아이디입니다.' })
     @Public()
     @Post('signup')
     async signUp(@Body() signUpDto:AuthDto){
@@ -49,7 +56,10 @@ export class AuthController {
     // delete
     @HttpCode(HttpStatus.OK)
     @ResponseMsg('탈퇴 성공')
+    @ApiResponse({ status: 200, description: '탈퇴 성공' })
+    @ApiResponse({ status: 400, description: '존재하지 않는 아이디입니다.' })
     @Delete('member/delete')
+    @ApiBearerAuth()
     async softDelete(@User() user){
         const checkUser = await this.userService.findOne(user.email);
         if (!checkUser) {

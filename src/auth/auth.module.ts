@@ -10,7 +10,6 @@ import { PrismaService } from "src/prisma.service";
 
 @Module({
   imports: [
-    // PassportModule.register({ defaultStrategy: 'jwt' }),
     UsersModule,
     JwtModule.register({
       global: true,

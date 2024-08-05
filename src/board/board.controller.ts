@@ -5,8 +5,11 @@ import { UpdateBoardDto } from './dto/update-board.dto';
 import { ResponseTransformInterceptor } from "src/interceptors/response-transform-interceptors";
 import { ResponseMsg } from "src/decorators/response-decorate";
 import { User } from "src/decorators/user.decorator";
+import { ApiBearerAuth, ApiResponse, ApiTags } from "@nestjs/swagger";
 
+@ApiTags('Board')
 @Controller('board')
+@ApiBearerAuth()
 @UseInterceptors(ResponseTransformInterceptor)
 export class BoardController {
   constructor(private readonly boardService: BoardService) {}
@@ -14,6 +17,8 @@ export class BoardController {
   // 게시글을 생성하는 API
   @HttpCode(HttpStatus.CREATED)
   @ResponseMsg('게시글 생성 성공')
+  @ApiResponse({ status: 201, description: '게시글 생성 성공' })
+  @ApiResponse({ status: 403, description: '관리자만 글작성 가능합니다.' })
   @Post('create')
   create(@Body() createBoardDto: CreateBoardDto, @User() user) {
     if (user.role === 1100 && createBoardDto.category !==2){
@@ -29,14 +34,28 @@ export class BoardController {
   // 카테고리별로 게시글을 가져오는 API
   @HttpCode(HttpStatus.OK)
   @ResponseMsg('게시글 조회 성공')
+  @ApiResponse({ status: 200, description: '게시글 조회 성공' })
+  @ApiResponse({ status: 404, description: '존재하지 않는 카테고리입니다.' })
   @Get(':category')
-  findAll(@Param('category') category: number) {
-    return this.boardService.findAll(+category);
+  async findAll(@Param('category') category: number) {
+    // console.log(category);
+    const checkCategory = await this.boardService.findAll(Number(category));
+    console.log(checkCategory);
+    
+    if (checkCategory.length === 0) {
+      throw new HttpException(
+        '존재하지 않는 카테고리입니다.',
+        HttpStatus.NOT_FOUND
+      );
+    }
+
+    return this.boardService.findAll(+Number(category));
   }
 
   // 게시글 하나를 가져오는 API
   @HttpCode(HttpStatus.OK)
   @ResponseMsg('게시글 조회 성공')
+  @ApiResponse({ status: 200, description: '게시글 조회 성공' })
   @Get(':category/:id')
   async findOne(@Param('id') id: string ,@User() user) {
     const data = await this.boardService.findOne(+id);
@@ -57,14 +76,18 @@ export class BoardController {
   // 게시글을 수정하는 API
   @HttpCode(HttpStatus.OK)
   @ResponseMsg('게시글 수정 성공')
+  @ApiResponse({ status: 200, description: '게시글 수정 성공' })
   @Put(':category/:id')
   update(@Param('id') id: string, @Body() updateBoardDto: UpdateBoardDto) {
     return this.boardService.update(+id, updateBoardDto);
   }
 
   // 게시글을 삭제하는 API
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   @ResponseMsg('게시글 삭제 성공')
+  @ApiResponse({ status: 200, description: '게시글 삭제 성공' })
+  @ApiResponse({ status: 403, description: '작성자만 삭제 가능합니다.' })
+  @ApiResponse({ status: 404, description: '존재하지 않는 게시글입니다.' })
   @Delete(':category/:id')
   async remove(@Param('id') id: string, @User() user) {
     const checkContent =await this.boardService.findOne(+id);
@@ -90,6 +113,7 @@ export class BoardController {
   // 검색 게시글 조회 API
   @HttpCode(HttpStatus.OK)
   @ResponseMsg('게시글 검색 성공')
+  @ApiResponse({ status: 200, description: '게시글 검색 성공' })
   @Get()
   search(@Query('search') search: string) {
     return this.boardService.search(search);
